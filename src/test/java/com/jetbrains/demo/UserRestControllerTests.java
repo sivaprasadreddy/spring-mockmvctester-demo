@@ -22,6 +22,11 @@ class UserRestControllerTests {
     MockMvcTester mockMvcTester;
 
     @Test
+    void getUserByIdSuccessful() {
+        assertThat(mockMvcTester.get().uri("/api/users/1")).hasStatusOk();
+    }
+
+    @Test
     void userRegistrationSuccessful() {
         String requestBody = """
                 {
@@ -31,6 +36,23 @@ class UserRestControllerTests {
                 }
                 """;
 
+        // using fluent API for executing request and assertions
+        assertThat(mockMvcTester
+                .post()
+                .uri("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+                    .hasStatus(HttpStatus.CREATED)
+                    .bodyJson()
+                    .isLenientlyEqualTo("""
+                            {
+                              "name": "Siva",
+                              "email": "siva@gmail.com",
+                              "role": "ROLE_USER"
+                            }
+                            """);
+
+        //split test execution and assertions
         MvcTestResult testResult = mockMvcTester.post()
                 .uri("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -40,23 +62,36 @@ class UserRestControllerTests {
         assertThat(testResult)
                 .hasStatus(HttpStatus.CREATED)
                 .bodyJson()
+                .isLenientlyEqualTo("""
+                        {
+                          "name": "Siva",
+                          "email": "siva@gmail.com",
+                          "role": "ROLE_USER"
+                        }
+                        """);
+
+        // compare response json with a classpath resource
+        var expected = new ClassPathResource("/user-registration-response.json",
+                UserRestControllerTests.class);
+        assertThat(testResult)
+                .hasStatus(HttpStatus.CREATED)
+                .bodyJson()
+                .isLenientlyEqualTo(expected);
+
+        // compare response by mapping it to a java object
+        assertThat(testResult)
+                .hasStatus(HttpStatus.CREATED)
+                .bodyJson()
                 .convertTo(RegistrationResponse.class)
                 .satisfies(response -> {
                     assertThat(response.name()).isEqualTo("Siva");
                     assertThat(response.email()).isEqualTo("siva@gmail.com");
                     assertThat(response.role()).isEqualTo("ROLE_USER");
                 });
-
-        ClassPathResource expected = new ClassPathResource("/user-registration-response.json",
-                UserRestControllerTests.class);
-        assertThat(testResult)
-                .hasStatus(HttpStatus.CREATED)
-                .bodyJson()
-                .isLenientlyEqualTo(expected);
     }
 
     @Test
-    void assertHandledException() {
+    void shouldFailToRegisterWithExistingEmail() {
         String requestBody = """
                 {
                     "email": "admin@gmail.com",

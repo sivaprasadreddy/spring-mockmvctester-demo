@@ -1,9 +1,6 @@
 package com.jetbrains.demo;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;

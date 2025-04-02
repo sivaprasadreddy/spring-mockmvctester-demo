@@ -23,7 +23,7 @@ class UserControllerTests {
         var result = mockMvcTester.get().uri("/users/1").exchange();
 
         assertThat(result)
-                .hasStatus(HttpStatus.OK)
+                .hasStatusOk()
                 .hasViewName("user")
                 .model()
                 .containsKeys("user")
@@ -50,12 +50,12 @@ class UserControllerTests {
     }
 
     @Test
-    void shouldGetErrorsWhenUserDataIsNotValid() {
+    void shouldGetErrorsWhenUserDataIsInvalid() {
         var result = mockMvcTester.post().uri("/users")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .param("name", "")
-                .param("email", "testuser4gmail.com")
-                .param("password", "pwd")
+                .param("name", "") // blank -invalid
+                .param("email", "testuser4gmail.com") // invalid email format
+                .param("password", "pwd") // valid
                 .exchange()
                 ;
 
